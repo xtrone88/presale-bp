@@ -7,9 +7,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract TokenMintERC20Token is Ownable {
 
   address private immutable BAP;
+  address private immutable BAP_OWNER;
+  uint256 public BAP_PRICE;
 
-  constructor(address _BAP) {
+  constructor(address _BAP, address _BAP_OWNER) {
     BAP = _BAP;
+    BAP_OWNER = _BAP_OWNER;
+    BAP_PRICE = 11; // means 0.11$
   }
 
   event Purchased(address receiver, uint256 amount);
@@ -20,6 +24,10 @@ contract TokenMintERC20Token is Ownable {
   function buy(uint256 quantity, address token, uint256 amount) public returns (bool) {
     
     emit Purchased(msg.sender, quantity);
+  }
+
+  function setBapPrice(uint256 price) public onlyOwner {
+    BAP_PRICE = price;
   }
   
 }
