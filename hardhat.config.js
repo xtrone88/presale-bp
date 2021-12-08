@@ -8,7 +8,7 @@ module.exports = {
   solidity: "0.8.4",
   networks: {
     mainnet: {
-      url: process.env.MAINNET_END_POINT,
+      url: process.env.REACT_APP_MAINNET_END_POINT,
       accounts: [process.env.MAINNET_PRIVATE_KEY]
     },
     rinkeby: {

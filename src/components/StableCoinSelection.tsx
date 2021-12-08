@@ -12,7 +12,15 @@ import {
   Tooltip,
 } from '@mui/material'
 
-import { getAccount, getEthBalance, getERC20Balance } from '../web3/index'
+import { getEthBalance, getERC20Balance, getLatestPriceOf } from '../web3/index'
+import {
+  COINS,
+  CHAINS,
+  COINMAP,
+  COIN_NAMES,
+  COIN_LOGOS,
+  PRICE_FEEDER,
+} from '../config/blockchain'
 
 const Logo = styled.img`
   height: 30px;
@@ -25,47 +33,54 @@ const MenuItem = muiStyled(MuiMenuItem)`
 `
 
 const BalDisplay = muiStyled(Typography)`
-  max-width: 120px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
 `
 
-enum COINS {
-  ETH = 0,
-  USDT,
-  DOGE,
+type PropsType = {
+  account: string
+  chainId: number
+  bapPrice: number
 }
 
-const COIN_LOGOS = [
-  'https://cryptologos.cc/logos/thumbs/ethereum.png?v=014',
-  'https://cryptologos.cc/logos/thumbs/tether.png?v=014',
-  'https://cryptologos.cc/logos/thumbs/dogecoin.png?v=014',
-]
-
-const COIN_ADDRESSES = [
-  '',
-  '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-  '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-]
-
-const COIN_NAMES = ['ETH', 'USDT', 'DOGE']
-
-export default function StableCoinSelection() {
+export default function StableCoinSelection(props: PropsType) {
   const [coin, setCoin] = useState(COINS.ETH)
   const [balance, setBalance] = useState('0')
-  const [payment, setPayment] = useState('0')
+  const [payment, setPayment] = useState(0)
+  const [price, setPrice] = useState(0)
 
   useEffect(() => {
-    if (coin === COINS.ETH) {
-      getEthBalance().then((bal) => {
+    if (!COINMAP[props.chainId]) {
+      return
+    }
+    if (props.chainId === CHAINS.BINANCE) {
+      getERC20Balance(COINMAP[props.chainId][coin]).then((bal) => {
         setBalance(bal as string)
       })
     } else {
-      getERC20Balance(COIN_ADDRESSES[coin]).then((bal) => {
-        setBalance(bal as string)
-      })
+      if (coin === COINS.ETH) {
+        getEthBalance().then((bal) => {
+          setBalance(bal as string)
+        })
+      } else {
+        getERC20Balance(COINMAP[props.chainId][coin]).then((bal) => {
+          setBalance(bal as string)
+        })
+      }
     }
+  }, [coin, props.account, props.chainId])
+
+  useEffect(() => {
+    getLatestPriceOf(PRICE_FEEDER[coin]).then((price) => {
+      setPrice(price)
+      setPayment(price > 0 ? props.bapPrice / price : 0)
+    })
   }, [coin])
+
+  useEffect(() => {
+    setPayment(price > 0 ? props.bapPrice / price : 0)
+  }, [props.bapPrice])
 
   return (
     <Box>
@@ -93,9 +108,9 @@ export default function StableCoinSelection() {
               <MenuItem value={COINS.USDT}>
                 <Logo src={COIN_LOGOS[COINS.USDT]} />
               </MenuItem>
-              <MenuItem value={COINS.DOGE}>
+              {/* <MenuItem value={COINS.DOGE}>
                 <Logo src={COIN_LOGOS[COINS.DOGE]} />
-              </MenuItem>
+              </MenuItem> */}
             </Select>
           </FormControl>
         </Grid>

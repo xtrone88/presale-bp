@@ -7,6 +7,9 @@ import {
   UserRejectedRequestError as UserRejectedRequestErrorInjected,
 } from '@web3-react/injected-connector'
 
+import { getChainId } from '../web3/index'
+import { COINS, CHAINS } from '../config/blockchain'
+
 declare global {
   interface Window {
     ethereum?: any
@@ -14,7 +17,7 @@ declare global {
 }
 
 const injected = new InjectedConnector({
-  supportedChainIds: [1, 3, 4, 5, 42, 137],
+  supportedChainIds: [CHAINS.ETHEREUM, CHAINS.BINANCE, CHAINS.RINKEBY],
 })
 
 const getErrorMessage = (error: Error) => {
@@ -32,16 +35,46 @@ const getErrorMessage = (error: Error) => {
 type PropsType = {
   caption: string
   onConnected?: Function
+  onAccountChanged?: Function
+  onChainChanged?: Function
 }
 
 export default function ConnectMetamask(props: PropsType) {
-  const { chainId, activate, deactivate, active, error } = useWeb3React()
-  const [connectedNetwork, setConnectedNetwork] = useState('')
+  const { activate, deactivate, active, error } = useWeb3React()
+
+  const handleAccountsChanged = (accounts: string[]) => {
+    if (props.onAccountChanged) {
+      props.onAccountChanged(accounts[0])
+    }
+  }
+
+  const handleChainChanged = (chainId: string) => {
+    if (props.onChainChanged) {
+      props.onChainChanged(parseInt(chainId))
+    }
+  }
+
+  const hasConnected = () => {
+    return active || window.ethereum
+  }
 
   useEffect(() => {
-    console.log('active', active)
-    if (active && props.onConnected) {
+    if (hasConnected() && props.onConnected) {
       props.onConnected()
+      window.ethereum.on('accountsChanged', handleAccountsChanged)
+      window.ethereum.on('chainChanged', handleChainChanged)
+      getChainId().then((chainId) => {
+        if (props.onChainChanged) {
+          props.onChainChanged(parseInt(chainId))
+        }
+      })
+    }
+    return function cleanup() {
+      deactivate()
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
+        window.ethereum.removeListener('chainChanged', handleChainChanged)
+      }
     }
   }, [active])
 
@@ -53,6 +86,7 @@ export default function ConnectMetamask(props: PropsType) {
         onClick={() => {
           activate(injected)
         }}
+        style={{ display: hasConnected() ? 'none' : '' }}
       >
         {props.caption}
       </Button>

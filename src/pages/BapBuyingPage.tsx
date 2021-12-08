@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Card,
   CardHeader,
@@ -14,6 +14,9 @@ import ConnectMetamask from '../components/ConnectMetamask'
 import BapTokenSelection from '../components/BapTokenSelection'
 import StableCoinSelection from '../components/StableCoinSelection'
 
+import { BAP_ADDRESS } from '../config/blockchain'
+import { getERC20Balance } from '../web3/index'
+
 const Divider = styled(MuiDivider)`
   width: 100%;
 `
@@ -21,9 +24,21 @@ const Divider = styled(MuiDivider)`
 export default function BapBuyingPage() {
   const [connected, setConnected] = useState(false)
   const [bapAmount, setBapAmount] = useState(1)
+  const [bapLimit, setBapLimit] = useState(100)
 
   const bapUnitPrice = 0.11
   const [bapPrice, setBapPrice] = useState(bapUnitPrice * bapAmount)
+  const [account, setAccount] = useState('')
+  const [chainId, setChainId] = useState(0)
+
+  useEffect(() => {
+    console.log(BAP_ADDRESS, process.env.REACT_APP_BAP_OWNER)
+    getERC20Balance(BAP_ADDRESS, process.env.REACT_APP_BAP_OWNER).then(
+      (bapLimit) => {
+        setBapLimit(parseFloat(bapLimit))
+      }
+    )
+  }, [connected])
 
   return (
     <Card variant="outlined" sx={{ width: 400 }}>
@@ -51,20 +66,32 @@ export default function BapBuyingPage() {
           <Divider />
           <BapTokenSelection
             value={bapAmount}
-            balance={1000}
+            balance={bapLimit}
             onChange={(value: number) => {
               setBapAmount(value)
               setBapPrice(value * bapUnitPrice)
             }}
           />
           <Divider />
-          <StableCoinSelection />
+          <StableCoinSelection
+            account={account}
+            chainId={chainId}
+            bapPrice={bapPrice}
+          />
           <Divider />
           <ConnectMetamask
             caption="Connect Metamask"
             onConnected={() => {
               console.log('Connected to Metamask')
               setConnected(true)
+            }}
+            onAccountChanged={(acc: string) => {
+              console.log('Account has changed to ', acc)
+              setAccount(acc)
+            }}
+            onChainChanged={(chain: number) => {
+              console.log('Chain has changed to ', chain)
+              setChainId(chain)
             }}
           ></ConnectMetamask>
         </Stack>
