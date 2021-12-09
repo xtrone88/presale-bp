@@ -38,7 +38,6 @@ export async function getERC20Balance(tokenAddress, ownerAddress) {
   if (!window.ethereum || tokenAddress === '') {
     return 0
   }
-
   const web3 = new Web3(window.ethereum)
   const ABI = [
     // balanceOf
@@ -151,4 +150,6 @@ export async function buyBapTokens(bapAmount, token, tokenAmount) {
     process.env.REACT_APP_BAPSALECONTRACT
   )
   const data = bapSaleContract.buy.getData()
+
+  console.log(data)
 }

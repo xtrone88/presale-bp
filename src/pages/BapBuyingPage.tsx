@@ -38,7 +38,7 @@ export default function BapBuyingPage() {
 
   useEffect(() => {
     getERC20Balance(
-      process.env.REACT_APP_BAP_ADDRESS,
+      process.env.REACT_APP_BAPTOKEN,
       process.env.REACT_APP_BAP_OWNER
     ).then((bapLimit) => {
       setBapLimit(parseFloat(bapLimit))

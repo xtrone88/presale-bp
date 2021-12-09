@@ -9,7 +9,7 @@ async function main() {
     'BAP Token',
     'BAP',
     8,
-    10000,
+    1000000000000,
     owner.address,
     owner.address
   )
