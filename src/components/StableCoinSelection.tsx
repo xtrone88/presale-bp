@@ -120,9 +120,9 @@ export default function StableCoinSelection(props: PropsType) {
               <MenuItem value={COINS.USDT}>
                 <Logo src={COIN_LOGOS[COINS.USDT]} />
               </MenuItem>
-              {/* <MenuItem value={COINS.DOGE}>
-                <Logo src={COIN_LOGOS[COINS.DOGE]} />
-              </MenuItem> */}
+              <MenuItem value={COINS.USDC}>
+                <Logo src={COIN_LOGOS[COINS.USDC]} />
+              </MenuItem>
             </Select>
           </FormControl>
         </Grid>
