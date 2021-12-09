@@ -21,7 +21,7 @@ contract BAPSaleContract is Ownable {
         // ETH/USD
         PRICE_FEEDERS[
             address(0)
-        ] = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
+        ] = 0x8A753747A1Fa494EC906cE90E9f37563A8AF630e; // 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
         // USDT/USD
         PRICE_FEEDERS[
             address(0xdAC17F958D2ee523a2206206994597C13D831ec7)
@@ -55,7 +55,7 @@ contract BAPSaleContract is Ownable {
             amount = msg.value;
         }
         uint256 payment = (uint256(getLatestPrice(PRICE_FEEDERS[token])) * amount) / (quantity * BAP_PRICE);
-        require(amount > payment, "You have paid less than expected");
+        require(amount >= payment, "You have paid less than expected");
 
         if (token != address(0)) {
             IERC20(token).transferFrom(msg.sender, address(this), payment);
@@ -79,7 +79,7 @@ contract BAPSaleContract is Ownable {
             balance = IERC20(token).balanceOf(address(this));
         }
 
-        require(balance > amount, "Required amount exceeds the balance");
+        require(balance >= amount, "Required amount exceeds the balance");
 
         if (token == address(0)) {
             payable(BAP_OWNER).transfer(amount);

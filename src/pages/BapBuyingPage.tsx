@@ -13,8 +13,9 @@ import { indigo } from '@mui/material/colors'
 import ConnectMetamask from '../components/ConnectMetamask'
 import BapTokenSelection from '../components/BapTokenSelection'
 import StableCoinSelection from '../components/StableCoinSelection'
+import BuyTransaction from '../components/BuyTransaction'
 
-import { BAP_ADDRESS } from '../config/blockchain'
+import { COINS } from '../config/blockchain'
 import { getERC20Balance } from '../web3/index'
 
 const Divider = styled(MuiDivider)`
@@ -31,13 +32,17 @@ export default function BapBuyingPage() {
   const [account, setAccount] = useState('')
   const [chainId, setChainId] = useState(0)
 
+  const [coinId, setCoinId] = useState(0)
+  const [coinAmount, setCoinAmount] = useState(0)
+  const [coinBalance, setCoinBalance] = useState(0)
+
   useEffect(() => {
-    console.log(BAP_ADDRESS, process.env.REACT_APP_BAP_OWNER)
-    getERC20Balance(BAP_ADDRESS, process.env.REACT_APP_BAP_OWNER).then(
-      (bapLimit) => {
-        setBapLimit(parseFloat(bapLimit))
-      }
-    )
+    getERC20Balance(
+      process.env.REACT_APP_BAP_ADDRESS,
+      process.env.REACT_APP_BAP_OWNER
+    ).then((bapLimit) => {
+      setBapLimit(parseFloat(bapLimit))
+    })
   }, [connected])
 
   return (
@@ -77,6 +82,11 @@ export default function BapBuyingPage() {
             account={account}
             chainId={chainId}
             bapPrice={bapPrice}
+            onChanged={(coin: COINS, balance: number, amount: number) => {
+              setCoinId(coin)
+              setCoinBalance(balance)
+              setCoinAmount(amount)
+            }}
           />
           <Divider />
           <ConnectMetamask
@@ -94,6 +104,14 @@ export default function BapBuyingPage() {
               setChainId(chain)
             }}
           ></ConnectMetamask>
+          {connected && (
+            <BuyTransaction
+              bapAmount={bapAmount}
+              coinId={coinId}
+              coinBalance={coinBalance}
+              coinAmount={coinAmount}
+            />
+          )}
         </Stack>
       </CardContent>
     </Card>

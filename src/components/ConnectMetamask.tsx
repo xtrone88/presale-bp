@@ -41,6 +41,7 @@ type PropsType = {
 
 export default function ConnectMetamask(props: PropsType) {
   const { activate, deactivate, active, error } = useWeb3React()
+  const [connected, setConnected] = useState(false)
 
   const handleAccountsChanged = (accounts: string[]) => {
     if (props.onAccountChanged) {
@@ -55,11 +56,12 @@ export default function ConnectMetamask(props: PropsType) {
   }
 
   const hasConnected = () => {
-    return active || window.ethereum
+    return active /*|| window.ethereum*/
   }
 
   useEffect(() => {
     if (hasConnected() && props.onConnected) {
+      setConnected(true)
       props.onConnected()
       window.ethereum.on('accountsChanged', handleAccountsChanged)
       window.ethereum.on('chainChanged', handleChainChanged)
@@ -79,20 +81,20 @@ export default function ConnectMetamask(props: PropsType) {
   }, [active])
 
   return (
-    <Box>
+    <>
       <Button
         fullWidth
         variant="contained"
         onClick={() => {
           activate(injected)
         }}
-        style={{ display: hasConnected() ? 'none' : '' }}
+        style={{ display: connected ? 'none' : '' }}
       >
         {props.caption}
       </Button>
       <Snackbar open={!!error} autoHideDuration={3000}>
         <Alert severity="error">{error ? getErrorMessage(error) : ''}</Alert>
       </Snackbar>
-    </Box>
+    </>
   )
 }

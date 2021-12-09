@@ -42,11 +42,12 @@ type PropsType = {
   account: string
   chainId: number
   bapPrice: number
+  onChanged?: Function
 }
 
 export default function StableCoinSelection(props: PropsType) {
   const [coin, setCoin] = useState(COINS.ETH)
-  const [balance, setBalance] = useState('0')
+  const [balance, setBalance] = useState(0)
   const [payment, setPayment] = useState(0)
   const [price, setPrice] = useState(0)
 
@@ -56,31 +57,42 @@ export default function StableCoinSelection(props: PropsType) {
     }
     if (props.chainId === CHAINS.BINANCE) {
       getERC20Balance(COINMAP[props.chainId][coin]).then((bal) => {
-        setBalance(bal as string)
+        setBalance(parseFloat(bal))
       })
     } else {
       if (coin === COINS.ETH) {
         getEthBalance().then((bal) => {
-          setBalance(bal as string)
+          setBalance(parseFloat(bal as string))
         })
       } else {
         getERC20Balance(COINMAP[props.chainId][coin]).then((bal) => {
-          setBalance(bal as string)
+          setBalance(parseFloat(bal))
         })
       }
     }
   }, [coin, props.account, props.chainId])
 
+  const updatePayment = (price: number) => {
+    const payment = price > 0 ? props.bapPrice / price : 0
+    setPayment(payment)
+  }
+
   useEffect(() => {
     getLatestPriceOf(PRICE_FEEDER[coin]).then((price) => {
       setPrice(price)
-      setPayment(price > 0 ? props.bapPrice / price : 0)
+      updatePayment(price)
     })
   }, [coin])
 
   useEffect(() => {
-    setPayment(price > 0 ? props.bapPrice / price : 0)
+    updatePayment(price)
   }, [props.bapPrice])
+
+  useEffect(() => {
+    if (props.onChanged) {
+      props.onChanged(coin, balance, payment)
+    }
+  }, [balance, payment])
 
   return (
     <Box>

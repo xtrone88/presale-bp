@@ -1,4 +1,5 @@
 import Web3 from 'web3'
+import BAPSaleContractABI from './BAPSaleContract.json'
 
 export async function getChainId() {
   if (!window.ethereum) {
@@ -26,6 +27,9 @@ export async function getEthBalance() {
 
   const web3 = new Web3(window.ethereum)
   const account = await getAccount()
+  if (!account) {
+    return 0
+  }
   const balance = await web3.eth.getBalance(account)
   return web3.utils.fromWei(balance, 'ether')
 }
@@ -57,6 +61,9 @@ export async function getERC20Balance(tokenAddress, ownerAddress) {
 
   let contract = new web3.eth.Contract(ABI, tokenAddress)
   const account = await getAccount()
+  if (!account) {
+    return 0
+  }
   const balance = await contract.methods
     .balanceOf(ownerAddress ? ownerAddress : account)
     .call()
@@ -127,4 +134,21 @@ export async function getLatestPriceOf(feederAddress) {
 
   const result = await priceFeed.methods.latestRoundData().call()
   return parseInt(result.answer) / Math.pow(10, 8)
+}
+
+export async function buyBapTokens(bapAmount, token, tokenAmount) {
+  if (!window.ethereum) {
+    return
+  }
+
+  if (token === '') {
+    token = '0x0000000000000000000000000000000000000000'
+  }
+
+  const web3 = new Web3(window.ethereum)
+  const bapSaleContract = new web3.eth.Contract(
+    BAPSaleContractABI.abi,
+    process.env.REACT_APP_BAPSALECONTRACT
+  )
+  const data = bapSaleContract.buy.getData()
 }
