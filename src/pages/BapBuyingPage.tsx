@@ -15,8 +15,8 @@ import BapTokenSelection from '../components/BapTokenSelection'
 import StableCoinSelection from '../components/StableCoinSelection'
 import BuyTransaction from '../components/BuyTransaction'
 
-import { COINS } from '../config/blockchain'
-import { getERC20Balance } from '../web3/index'
+import { COINS, COINMAP } from '../config/blockchain'
+import { getBapSalePrice, getERC20Balance } from '../web3/index'
 
 const Divider = styled(MuiDivider)`
   width: 100%;
@@ -25,9 +25,9 @@ const Divider = styled(MuiDivider)`
 export default function BapBuyingPage() {
   const [connected, setConnected] = useState(false)
   const [bapAmount, setBapAmount] = useState(1)
-  const [bapLimit, setBapLimit] = useState(100)
+  const [bapLimit, setBapLimit] = useState(1)
 
-  const bapUnitPrice = 0.11
+  const [bapUnitPrice, setBapUnitPrice] = useState(0)
   const [bapPrice, setBapPrice] = useState(bapUnitPrice * bapAmount)
   const [account, setAccount] = useState('')
   const [chainId, setChainId] = useState(0)
@@ -37,6 +37,13 @@ export default function BapBuyingPage() {
   const [coinBalance, setCoinBalance] = useState(0)
 
   useEffect(() => {
+    if (!connected) {
+      return
+    }
+    getBapSalePrice().then((price) => {
+      setBapUnitPrice(price)
+      setBapPrice(price * bapAmount)
+    })
     getERC20Balance(
       process.env.REACT_APP_BAPTOKEN,
       process.env.REACT_APP_BAP_OWNER
@@ -107,7 +114,7 @@ export default function BapBuyingPage() {
           {connected && (
             <BuyTransaction
               bapAmount={bapAmount}
-              coinId={coinId}
+              coinAddress={COINMAP[chainId] ? COINMAP[chainId][coinId] : ''}
               coinBalance={coinBalance}
               coinAmount={coinAmount}
             />

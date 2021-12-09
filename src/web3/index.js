@@ -1,6 +1,8 @@
 import Web3 from 'web3'
 import BAPSaleContractABI from './BAPSaleContract.json'
 
+const BN = Web3.utils.BN
+
 export async function getChainId() {
   if (!window.ethereum) {
     return 0
@@ -135,13 +137,9 @@ export async function getLatestPriceOf(feederAddress) {
   return parseInt(result.answer) / Math.pow(10, 8)
 }
 
-export async function buyBapTokens(bapAmount, token, tokenAmount) {
+export async function getBapSalePrice() {
   if (!window.ethereum) {
-    return
-  }
-
-  if (token === '') {
-    token = '0x0000000000000000000000000000000000000000'
+    return 0
   }
 
   const web3 = new Web3(window.ethereum)
@@ -149,7 +147,91 @@ export async function buyBapTokens(bapAmount, token, tokenAmount) {
     BAPSaleContractABI.abi,
     process.env.REACT_APP_BAPSALECONTRACT
   )
-  const data = bapSaleContract.buy.getData()
 
-  console.log(data)
+  const price = await bapSaleContract.methods.bapPrice().call()
+  return parseFloat((parseInt(price) / 100000000).toFixed(8))
+}
+
+export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
+  if (!window.ethereum) {
+    return
+  }
+
+  console.log(bapAmount, tokenAmount)
+
+  const web3 = new Web3(window.ethereum)
+  const bapSaleContract = new web3.eth.Contract(
+    BAPSaleContractABI.abi,
+    process.env.REACT_APP_BAPSALECONTRACT
+  )
+
+  const ABI = [
+    {
+      constant: true,
+      inputs: [],
+      name: 'decimals',
+      outputs: [{ name: '', type: 'uint8' }],
+      type: 'function',
+    },
+  ]
+  const bapToken = new web3.eth.Contract(ABI, process.env.REACT_APP_BAPTOKEN)
+  const bapDecimals = await bapToken.methods.decimals().call()
+  bapAmount = new BN(String(bapAmount)).mul(
+    new BN('10').pow(new BN(bapDecimals))
+  )
+
+  let tx = {
+    from: await getAccount(),
+    to: '',
+    data: '',
+    value: '0',
+  }
+
+  if (token === '') {
+    token = '0x0000000000000000000000000000000000000000'
+    tx.value = web3.utils.toHex(
+      web3.utils.toWei(tokenAmount.toFixed(18), 'ether')
+    )
+    tokenAmount = '0'
+  } else {
+    const tokenContract = new web3.eth.Contract(ABI, token)
+    const tokenDecimals = await tokenContract.methods.decimals().call()
+    tokenAmount = new BN(tokenAmount.toFixed(tokenDecimals)).mul(
+      new BN('10').pow(new BN(tokenDecimals))
+    )
+    tx.to = token
+    tx.data = tokenContract.methods.approve(
+      process.env.REACT_APP_BAPSALECONTRACT,
+      tokenAmount
+    ).encodeABI
+
+    await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [tx],
+    })
+  }
+
+  tx.to = process.env.REACT_APP_BAPSALECONTRACT
+  tx.data = bapSaleContract.methods
+    .buy(bapAmount, token, tokenAmount)
+    .encodeABI()
+
+  const txHash = await window.ethereum.request({
+    method: 'eth_sendTransaction',
+    params: [tx],
+  })
+
+  console.log(txHash)
+
+  bapSaleContract.once(
+    'Purchased',
+    {
+      filter: { receiver: tx.from },
+      fromBlock: 0,
+    },
+    function (error, event) {
+      console.log(event) //
+      callback()
+    }
+  )
 }

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Button, CircularProgress, Snackbar, Alert } from '@mui/material'
 
-import { COINS } from '../config/blockchain'
+import { COINS, COINMAP } from '../config/blockchain'
+import { buyBapTokens } from '../web3/index'
 
 type PropsType = {
   bapAmount: number
-  coinId: COINS
+  coinAddress: string
   coinBalance: number
   coinAmount: number
 }
@@ -33,6 +34,14 @@ export default function BuyTransaction(props: PropsType) {
           disabled={waiting}
           onClick={() => {
             setWaiting(true)
+            buyBapTokens(
+              props.bapAmount,
+              props.coinAddress,
+              props.coinAmount,
+              () => {
+                window.location.reload()
+              }
+            )
           }}
         >
           Buy BAP Tokens
