@@ -4,30 +4,30 @@ import BAPSaleContractABI from './BAPSaleContract.json'
 const BN = Web3.utils.BN
 
 export async function getChainId() {
-  if (!window.ethereum) {
+  if (!window.web3Provider) {
     return 0
   }
 
-  const chainId = await window.ethereum.request({ method: 'eth_chainId' })
+  const chainId = await window.web3Provider.request({ method: 'eth_chainId' })
   return chainId
 }
 
 export async function getAccount() {
-  if (!window.ethereum) {
+  if (!window.web3Provider) {
     return null
   }
 
-  const web3 = new Web3(window.ethereum)
+  const web3 = new Web3(window.web3Provider)
   const accounts = await web3.eth.getAccounts()
   return accounts[0]
 }
 
 export async function getEthBalance() {
-  if (!window.ethereum) {
+  if (!window.web3Provider) {
     return 0
   }
 
-  const web3 = new Web3(window.ethereum)
+  const web3 = new Web3(window.web3Provider)
   const account = await getAccount()
   if (!account) {
     return 0
@@ -37,10 +37,10 @@ export async function getEthBalance() {
 }
 
 export async function getERC20Balance(tokenAddress, ownerAddress) {
-  if (!window.ethereum || tokenAddress === '') {
+  if (!window.web3Provider || tokenAddress === '') {
     return 0
   }
-  const web3 = new Web3(window.ethereum)
+  const web3 = new Web3(window.web3Provider)
   const ABI = [
     // balanceOf
     {
@@ -138,11 +138,11 @@ export async function getLatestPriceOf(feederAddress) {
 }
 
 export async function getBapSalePrice() {
-  if (!window.ethereum) {
+  if (!window.web3Provider) {
     return 0
   }
 
-  const web3 = new Web3(window.ethereum)
+  const web3 = new Web3(window.web3Provider)
   const bapSaleContract = new web3.eth.Contract(
     BAPSaleContractABI.abi,
     process.env.REACT_APP_BAPSALECONTRACT
@@ -153,13 +153,13 @@ export async function getBapSalePrice() {
 }
 
 export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
-  if (!window.ethereum) {
+  if (!window.web3Provider) {
     return
   }
 
   console.log(bapAmount, tokenAmount)
 
-  const web3 = new Web3(window.ethereum)
+  const web3 = new Web3(window.web3Provider)
   const bapSaleContract = new web3.eth.Contract(
     BAPSaleContractABI.abi,
     process.env.REACT_APP_BAPSALECONTRACT
@@ -205,7 +205,7 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
       tokenAmount
     ).encodeABI
 
-    await window.ethereum.request({
+    await window.web3Provider.request({
       method: 'eth_sendTransaction',
       params: [tx],
     })
@@ -216,7 +216,7 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
     .buy(bapAmount, token, tokenAmount)
     .encodeABI()
 
-  const txHash = await window.ethereum.request({
+  const txHash = await window.web3Provider.request({
     method: 'eth_sendTransaction',
     params: [tx],
   })

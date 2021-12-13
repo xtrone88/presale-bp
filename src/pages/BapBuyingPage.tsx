@@ -10,13 +10,19 @@ import {
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { indigo } from '@mui/material/colors'
-import ConnectMetamask from '../components/ConnectMetamask'
+import ConnectWallet from '../components/ConnectWallet'
 import BapTokenSelection from '../components/BapTokenSelection'
 import StableCoinSelection from '../components/StableCoinSelection'
 import BuyTransaction from '../components/BuyTransaction'
 
 import { COINS, COINMAP } from '../config/blockchain'
 import { getBapSalePrice, getERC20Balance } from '../web3/index'
+
+declare global {
+  interface Window {
+    web3Provider?: any
+  }
+}
 
 const Divider = styled(MuiDivider)`
   width: 100%;
@@ -55,7 +61,7 @@ export default function BapBuyingPage() {
   return (
     <Card variant="outlined" sx={{ width: 400 }}>
       <CardHeader
-        title="Buy the BAP"
+        title="BUY THE BAP"
         titleTypographyProps={{ variant: 'h6', sx: { color: 'white' } }}
         avatar={
           <Avatar
@@ -96,9 +102,12 @@ export default function BapBuyingPage() {
             }}
           />
           <Divider />
-          <ConnectMetamask
+          <ConnectWallet
+            wallet="metamask"
             caption="Connect Metamask"
-            onConnected={() => {
+            color="primary"
+            onConnected={(provider: any) => {
+              window.web3Provider = provider
               console.log('Connected to Metamask')
               setConnected(true)
             }}
@@ -110,7 +119,25 @@ export default function BapBuyingPage() {
               console.log('Chain has changed to ', chain)
               setChainId(chain)
             }}
-          ></ConnectMetamask>
+          ></ConnectWallet>
+          <ConnectWallet
+            wallet="walletconnect"
+            caption="WalletConnect"
+            color="secondary"
+            onConnected={(provider: any) => {
+              window.web3Provider = provider
+              console.log('Connected to WalletConnect')
+              setConnected(true)
+            }}
+            onAccountChanged={(acc: string) => {
+              console.log('Account has changed to ', acc)
+              setAccount(acc)
+            }}
+            onChainChanged={(chain: number) => {
+              console.log('Chain has changed to ', chain)
+              setChainId(chain)
+            }}
+          ></ConnectWallet>
           {connected && (
             <BuyTransaction
               bapAmount={bapAmount}

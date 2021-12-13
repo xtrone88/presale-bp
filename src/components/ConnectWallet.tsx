@@ -2,31 +2,17 @@ import React, { useEffect, useState } from 'react'
 import { Box, Button, Snackbar, Alert } from '@mui/material'
 import { InjectedConnector } from '@web3-react/injected-connector'
 import { useWeb3React, UnsupportedChainIdError } from '@web3-react/core'
-import {
-  NoEthereumProviderError,
-  UserRejectedRequestError as UserRejectedRequestErrorInjected,
-} from '@web3-react/injected-connector'
+import { NoEthereumProviderError } from '@web3-react/injected-connector'
+import { WalletConnectConnector } from '@web3-react/walletconnect-connector'
 
 import { getChainId } from '../web3/index'
 import { COINS, CHAINS } from '../config/blockchain'
-
-declare global {
-  interface Window {
-    ethereum?: any
-  }
-}
-
-const injected = new InjectedConnector({
-  supportedChainIds: [CHAINS.ETHEREUM, CHAINS.BINANCE, CHAINS.RINKEBY],
-})
 
 const getErrorMessage = (error: Error) => {
   if (error instanceof NoEthereumProviderError) {
     return 'No Ethereum browser extension detected, install MetaMask on desktop or visit from a dApp browser on mobile.'
   } else if (error instanceof UnsupportedChainIdError) {
     return "You're connected to an unsupported network."
-  } else if (error instanceof UserRejectedRequestErrorInjected) {
-    return 'Please authorize this website to access your Ethereum account.'
   } else {
     return error.message
   }
@@ -34,12 +20,25 @@ const getErrorMessage = (error: Error) => {
 
 type PropsType = {
   caption: string
+  color: 'primary' | 'secondary'
+  wallet: 'metamask' | 'walletconnect'
   onConnected?: Function
   onAccountChanged?: Function
   onChainChanged?: Function
 }
 
-export default function ConnectMetamask(props: PropsType) {
+const connectors = {
+  metamask: new InjectedConnector({
+    supportedChainIds: [CHAINS.ETHEREUM, CHAINS.BINANCE, CHAINS.RINKEBY],
+  }),
+  walletconnect: new WalletConnectConnector({
+    supportedChainIds: [CHAINS.ETHEREUM, CHAINS.BINANCE, CHAINS.RINKEBY],
+  }),
+} as {
+  [key: string]: any
+}
+
+export default function ConnectWallet(props: PropsType) {
   const { activate, deactivate, active, error } = useWeb3React()
   const [connected, setConnected] = useState(false)
 
@@ -56,27 +55,31 @@ export default function ConnectMetamask(props: PropsType) {
   }
 
   const hasConnected = () => {
-    return active /*|| window.ethereum*/
+    return active
   }
 
+  let connector: any = connectors[props.wallet]
+
   useEffect(() => {
-    if (hasConnected() && props.onConnected) {
-      setConnected(true)
-      props.onConnected()
-      window.ethereum.on('accountsChanged', handleAccountsChanged)
-      window.ethereum.on('chainChanged', handleChainChanged)
-      getChainId().then((chainId) => {
-        if (props.onChainChanged) {
-          props.onChainChanged(parseInt(chainId))
+    console.log('connected', connected)
+    if (hasConnected() && connector) {
+      connector.getProvider().then((provider: any) => {
+        if (!provider) {
+          return
         }
+        setConnected(true)
+        console.log(provider)
+        if (props.onConnected) {
+          props.onConnected(provider)
+        }
+        provider.on('accountsChanged', handleAccountsChanged)
+        provider.on('chainChanged', handleChainChanged)
+        getChainId().then((chainId) => {
+          if (props.onChainChanged) {
+            props.onChainChanged(parseInt(chainId))
+          }
+        })
       })
-    }
-    return function cleanup() {
-      deactivate()
-      if (window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
-        window.ethereum.removeListener('chainChanged', handleChainChanged)
-      }
     }
   }, [active])
 
@@ -84,11 +87,12 @@ export default function ConnectMetamask(props: PropsType) {
     <>
       <Button
         fullWidth
+        color={props.color}
         variant="contained"
         onClick={() => {
-          activate(injected)
+          activate(connector)
         }}
-        style={{ display: connected ? 'none' : '' }}
+        sx={{ display: connected ? 'none' : '' }}
       >
         {props.caption}
       </Button>
