@@ -16,7 +16,7 @@ contract BAPSaleContract is Ownable {
     constructor(address _BAP, address _BAP_OWNER) {
         BAP = _BAP;
         BAP_OWNER = _BAP_OWNER;
-        BAP_PRICE = 11000000; // means 0.11$
+        BAP_PRICE = 16000000; // means 0.16$
 
         // ETH/USD
         PRICE_FEEDERS[
