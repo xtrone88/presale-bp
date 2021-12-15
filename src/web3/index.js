@@ -167,13 +167,38 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
 
   const ABI = [
     {
-      constant: true,
       inputs: [],
       name: 'decimals',
-      outputs: [{ name: '', type: 'uint8' }],
+      outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
+      stateMutability: 'view',
+      type: 'function',
+    },
+    {
+      inputs: [
+        {
+          internalType: 'address',
+          name: 'spender',
+          type: 'address',
+        },
+        {
+          internalType: 'uint256',
+          name: 'amount',
+          type: 'uint256',
+        },
+      ],
+      name: 'approve',
+      outputs: [
+        {
+          internalType: 'bool',
+          name: '',
+          type: 'bool',
+        },
+      ],
+      stateMutability: 'nonpayable',
       type: 'function',
     },
   ]
+
   const bapToken = new web3.eth.Contract(ABI, process.env.REACT_APP_BAPTOKEN)
   const bapDecimals = await bapToken.methods.decimals().call()
   bapAmount = new BN(String(bapAmount)).mul(
@@ -181,8 +206,8 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
   )
 
   let tx = {
-    gas: '0x2710',
-    gasPrice: '0x09184e72a000',
+    gas: '0x5208',
+    gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
     from: await getAccount(),
     to: '',
     data: '',
@@ -202,23 +227,32 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
       new BN('10').pow(new BN(tokenDecimals))
     )
     tx.to = token
-    tx.data = tokenContract.methods.approve(
-      process.env.REACT_APP_BAPSALECONTRACT,
-      tokenAmount
-    ).encodeABI
+    tx.data = tokenContract.methods
+      .approve(process.env.REACT_APP_BAPSALECONTRACT, tokenAmount)
+      .encodeABI()
 
-    await window.web3Provider.request({
-      method: 'eth_sendTransaction',
-      params: [tx],
-    })
+    const txHash = await window.web3Provider
+      .request({
+        method: 'eth_sendTransaction',
+        params: [tx],
+      })
+      .then(() => {
+        console.log('Transaction!!!')
+      })
+      .catch((err) => {
+        callback()
+      })
   }
 
   tx.to = process.env.REACT_APP_BAPSALECONTRACT
   tx.data = bapSaleContract.methods
     .buy(bapAmount, token, tokenAmount)
     .encodeABI()
+  tx.gas = '0x5208'
 
-  const txHash = await window.web3Provider
+  console.log(tx)
+
+  await window.web3Provider
     .request({
       method: 'eth_sendTransaction',
       params: [tx],
@@ -230,7 +264,7 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
       callback()
     })
 
-  bapSaleContract.once(
+  await bapSaleContract.once(
     'Purchased',
     {
       filter: { receiver: tx.from },
