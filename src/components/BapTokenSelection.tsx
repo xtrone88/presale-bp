@@ -17,7 +17,7 @@ export default function BapTokenSelection(props: PropsType) {
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target) {
-      setValue(event.target.value === '' ? 1 : Number(event.target.value))
+      setValue(event.target.value === '' ? 100 : Number(event.target.value))
     }
   }
 
@@ -53,8 +53,8 @@ export default function BapTokenSelection(props: PropsType) {
           <Slider
             color="secondary"
             size="small"
-            min={1}
-            max={props.balance}
+            min={100}
+            max={props.balance > 100000 ? 100000 : props.balance}
             value={typeof value === 'number' ? value : 0}
             onChange={handleSliderChange}
             aria-labelledby="bap-slider"

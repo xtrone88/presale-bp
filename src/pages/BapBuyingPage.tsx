@@ -30,8 +30,8 @@ const Divider = styled(MuiDivider)`
 
 export default function BapBuyingPage() {
   const [connected, setConnected] = useState(false)
-  const [bapAmount, setBapAmount] = useState(1)
-  const [bapLimit, setBapLimit] = useState(1)
+  const [bapAmount, setBapAmount] = useState(100)
+  const [bapLimit, setBapLimit] = useState(100)
 
   const [bapUnitPrice, setBapUnitPrice] = useState(0)
   const [bapPrice, setBapPrice] = useState(bapUnitPrice * bapAmount)
@@ -79,7 +79,7 @@ export default function BapBuyingPage() {
           spacing={2}
         >
           <Typography align="center" variant="subtitle1">
-            {bapAmount} BAP = {bapPrice.toFixed(2)} $
+            {connected ? bapAmount : 1} BAP = {bapPrice.toFixed(2)} $
           </Typography>
           <Divider />
           <BapTokenSelection

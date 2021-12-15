@@ -216,12 +216,17 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
     .buy(bapAmount, token, tokenAmount)
     .encodeABI()
 
-  const txHash = await window.web3Provider.request({
-    method: 'eth_sendTransaction',
-    params: [tx],
-  })
-
-  console.log(txHash)
+  const txHash = await window.web3Provider
+    .request({
+      method: 'eth_sendTransaction',
+      params: [tx],
+    })
+    .then(() => {
+      console.log('Transaction!!!')
+    })
+    .catch((err) => {
+      callback()
+    })
 
   bapSaleContract.once(
     'Purchased',
@@ -230,7 +235,7 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
       fromBlock: 0,
     },
     function (error, event) {
-      console.log(event) //
+      console.log(event)
       callback()
     }
   )
