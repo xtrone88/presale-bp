@@ -9,14 +9,14 @@ module.exports = {
   networks: {
     mainnet: {
       url: process.env.REACT_APP_MAINNET_END_POINT,
-      accounts: [process.env.MAINNET_PRIVATE_KEY]
+      accounts: [process.env.MAINNET_PRIVATE_KEY],
     },
     rinkeby: {
-      url: process.env.RINKEBY_END_POINT,
-      accounts: [process.env.RINKEBY_PRIVATE_KEY]
-    }
+      url: process.env.REACT_APP_RINKEBY_END_POINT,
+      accounts: [process.env.RINKEBY_PRIVATE_KEY],
+    },
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
 }

@@ -181,6 +181,8 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
   )
 
   let tx = {
+    gas: '0x2710',
+    gasPrice: '0x09184e72a000',
     from: await getAccount(),
     to: '',
     data: '',
