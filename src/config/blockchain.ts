@@ -43,3 +43,6 @@ export const PRICE_FEEDER = [
 ]
 
 export const COIN_NAMES = ['ETH', 'USDT', 'USDC']
+
+export const COIN_DECIMALS = [8, 0, 0]
+export const COIN_SLIDER_STEP = [0.00000001, 1, 1]

@@ -11,7 +11,7 @@ import {
 import { styled } from '@mui/material/styles'
 import { indigo } from '@mui/material/colors'
 import ConnectWallet from '../components/ConnectWallet'
-import BapTokenSelection from '../components/BapTokenSelection'
+import BapTokenSelection from '../components/TokenSelection'
 import StableCoinSelection from '../components/StableCoinSelection'
 import BuyTransaction from '../components/BuyTransaction'
 
@@ -83,8 +83,12 @@ export default function BapBuyingPage() {
           </Typography>
           <Divider />
           <BapTokenSelection
+            name="BAP"
+            avatar="https://cdn.shopify.com/s/files/1/0602/8630/4509/products/BAPPNG_ca04f2e0-13a6-4027-a292-4e07fb28d99a_180x180.png?v=1634449008"
             value={bapAmount}
-            balance={bapLimit}
+            min={100}
+            max={bapLimit > 100000 ? 100000 : bapLimit}
+            step={1}
             onChange={(value: number) => {
               setBapAmount(value)
               setBapPrice(value * bapUnitPrice)

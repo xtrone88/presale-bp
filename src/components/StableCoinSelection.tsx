@@ -41,14 +41,15 @@ const BalDisplay = muiStyled(Typography)`
 type PropsType = {
   account: string
   chainId: number
-  bapPrice: number
+  bapPrice?: number
+  payment?: number
   onChanged?: Function
 }
 
 export default function StableCoinSelection(props: PropsType) {
   const [coin, setCoin] = useState(COINS.ETH)
   const [balance, setBalance] = useState(0)
-  const [payment, setPayment] = useState(0)
+  const [payment, setPayment] = useState(props.payment ? props.payment : 0)
   const [price, setPrice] = useState(0)
 
   useEffect(() => {
@@ -56,43 +57,53 @@ export default function StableCoinSelection(props: PropsType) {
       return
     }
     if (props.chainId === CHAINS.BINANCE) {
-      getERC20Balance(COINMAP[props.chainId][coin]).then((bal) => {
-        setBalance(parseFloat(bal))
-      })
+      getERC20Balance(COINMAP[props.chainId][coin], props.account).then(
+        (bal) => {
+          setBalance(parseFloat(bal))
+        }
+      )
     } else {
       if (coin === COINS.ETH) {
-        getEthBalance().then((bal) => {
+        getEthBalance(props.account).then((bal) => {
           setBalance(parseFloat(bal as string))
         })
       } else {
-        getERC20Balance(COINMAP[props.chainId][coin]).then((bal) => {
-          setBalance(parseFloat(bal))
-        })
+        getERC20Balance(COINMAP[props.chainId][coin], props.account).then(
+          (bal) => {
+            setBalance(parseFloat(bal))
+          }
+        )
       }
     }
   }, [coin, props.account, props.chainId])
 
   const updatePayment = (price: number) => {
-    const payment = price > 0 ? props.bapPrice / price : 0
-    setPayment(payment)
+    if (props.bapPrice) {
+      const payment = price > 0 ? props.bapPrice / price : 0
+      setPayment(payment)
+    }
   }
 
   useEffect(() => {
-    getLatestPriceOf(PRICE_FEEDER[coin]).then((price) => {
-      setPrice(price)
-      updatePayment(price)
-    })
+    if (props.payment) {
+      getLatestPriceOf(PRICE_FEEDER[coin]).then((price) => {
+        setPrice(price)
+        updatePayment(price)
+      })
+    }
   }, [coin])
 
   useEffect(() => {
-    updatePayment(price)
+    if (props.payment) {
+      updatePayment(price)
+    }
   }, [props.bapPrice])
 
   useEffect(() => {
     if (props.onChanged) {
       props.onChanged(coin, balance, payment)
     }
-  }, [balance, payment])
+  }, [coin, balance, payment])
 
   return (
     <Box>
@@ -128,17 +139,21 @@ export default function StableCoinSelection(props: PropsType) {
         </Grid>
         <Grid item>
           <Typography variant="h6">BALANCE</Typography>
-          <Tooltip title={balance}>
+          <Tooltip title={balance.toFixed(12)}>
             <BalDisplay variant="h6" align="center">
-              {balance}
+              {balance.toFixed(8)}
             </BalDisplay>
           </Tooltip>
         </Grid>
         <Grid item>
-          <Typography variant="h6">PAYMENT</Typography>
-          <Tooltip title={payment}>
+          <Typography variant="h6">AMOUNT</Typography>
+          <Tooltip
+            title={
+              props.payment ? props.payment.toFixed(12) : payment.toFixed(12)
+            }
+          >
             <BalDisplay variant="h6" align="center">
-              {payment}
+              {props.payment ? props.payment.toFixed(8) : payment.toFixed(8)}
             </BalDisplay>
           </Tooltip>
         </Grid>

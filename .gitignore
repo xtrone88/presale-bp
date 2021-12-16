@@ -4,3 +4,5 @@ secrets.json
 artifacts
 cache
 .env
+.env.mainnet
+.env.rinkeby

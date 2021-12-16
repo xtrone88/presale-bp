@@ -1,14 +1,23 @@
 import React, { useEffect, useState } from 'react'
-import { styled } from '@mui/material/styles'
+import styled from 'styled-components'
 import { Box, Grid, Typography, Slider, Input, Avatar } from '@mui/material'
 
+const Logo = styled.img`
+  height: 40px;
+  cursor: pointer;
+`
+
 type PropsType = {
+  name: string
+  avatar: string
+  min: number
+  max: number
+  step: number
   value: number
-  balance: number
   onChange?: Function
 }
 
-export default function BapTokenSelection(props: PropsType) {
+export default function TokenSelection(props: PropsType) {
   const [value, setValue] = useState(props.value)
 
   const handleSliderChange = (event: Event, newValue: number | number[]) => {
@@ -17,15 +26,17 @@ export default function BapTokenSelection(props: PropsType) {
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target) {
-      setValue(event.target.value === '' ? 100 : Number(event.target.value))
+      setValue(
+        event.target.value === '' ? props.min : Number(event.target.value)
+      )
     }
   }
 
   const handleBlur = () => {
     if (value <= 0) {
       setValue(1)
-    } else if (value > props.balance) {
-      setValue(props.balance)
+    } else if (value > props.max) {
+      setValue(props.max)
     }
   }
 
@@ -40,21 +51,19 @@ export default function BapTokenSelection(props: PropsType) {
   return (
     <Box>
       <Typography id="bap-slider" variant="h6">
-        BAP
+        {props.name}
       </Typography>
       <Grid container spacing={2} alignItems="center">
         <Grid item>
-          <Avatar
-            alt="BAP Logo"
-            src="https://cdn.shopify.com/s/files/1/0602/8630/4509/products/BAPPNG_ca04f2e0-13a6-4027-a292-4e07fb28d99a_180x180.png?v=1634449008"
-          />
+          <Logo src={props.avatar} />
         </Grid>
         <Grid item xs>
           <Slider
             color="secondary"
             size="small"
-            min={100}
-            max={props.balance > 100000 ? 100000 : props.balance}
+            min={props.min}
+            max={props.max}
+            step={props.step}
             value={typeof value === 'number' ? value : 0}
             onChange={handleSliderChange}
             aria-labelledby="bap-slider"
@@ -62,18 +71,18 @@ export default function BapTokenSelection(props: PropsType) {
         </Grid>
         <Grid item>
           <Input
-            value={value}
+            value={value.toFixed(8)}
             size="small"
             onChange={handleInputChange}
             onBlur={handleBlur}
             inputProps={{
-              step: 1,
-              min: 1,
-              max: props.balance,
+              step: props.step,
+              min: props.min,
+              max: props.max,
               type: 'number',
               'aria-labelledby': 'bap-slider',
             }}
-            sx={{ width: 80 }}
+            sx={{ width: 120 }}
           />
         </Grid>
       </Grid>
