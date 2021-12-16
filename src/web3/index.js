@@ -155,7 +155,6 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
   tx.data = bapSaleContract.methods
     .buy(bapAmount, token, tokenAmount)
     .encodeABI()
-  tx.gas = '0x5208'
 
   console.log(tx)
 
@@ -241,8 +240,8 @@ export async function withrawFund(token, tokenAmount, callback) {
   )
 
   let tx = {
-    //gas: '0x5208',
-    //gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
+    gas: '0x5208',
+    gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
     from: await getAccount(),
     to: process.env.REACT_APP_BAPSALECONTRACT,
     data: '',
