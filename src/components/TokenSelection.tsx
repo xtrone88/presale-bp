@@ -71,7 +71,7 @@ export default function TokenSelection(props: PropsType) {
         </Grid>
         <Grid item>
           <Input
-            value={value.toFixed(8)}
+            value={parseFloat(value.toFixed(8))}
             size="small"
             onChange={handleInputChange}
             onBlur={handleBlur}

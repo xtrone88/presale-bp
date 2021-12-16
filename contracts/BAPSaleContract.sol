@@ -3,7 +3,7 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./AggregatorV3Interface.sol";
 
 contract BAPSaleContract is Ownable {
@@ -52,17 +52,22 @@ contract BAPSaleContract is Ownable {
         address token,
         uint256 amount
     ) public payable {
-        require(IERC20(BAP).balanceOf(BAP_OWNER) > quantity, "Required BAP exceeds the balance");
+        require(ERC20(BAP).balanceOf(BAP_OWNER) > quantity, "Required BAP exceeds the balance");
         require(quantity > 0 || (token == address(0) && msg.value > 0) || amount > 0, "You have wrong parameters");
 
+        uint256 multiplier = 0;
+        uint256 divider = 10 ** ERC20(BAP).decimals();
         if (token == address(0)) {
             amount = msg.value;
+            multiplier = 10 ** 18;
+        } else {
+            multiplier = 10 ** ERC20(token).decimals();
         }
-        uint256 payment = (uint256(getLatestPrice(PRICE_FEEDERS[token])) * amount) / (quantity * BAP_PRICE);
+        uint256 payment = (quantity * BAP_PRICE) * multiplier / uint256(getLatestPrice(PRICE_FEEDERS[token])) / divider;
         require(amount >= payment, "You have paid less than expected");
 
         if (token != address(0)) {
-            IERC20(token).transferFrom(msg.sender, address(this), payment);
+            ERC20(token).transferFrom(msg.sender, address(this), payment);
         }
 
         uint256 remain = amount - payment;
@@ -70,7 +75,7 @@ contract BAPSaleContract is Ownable {
             payable(msg.sender).transfer(remain);
         }
 
-        IERC20(BAP).transferFrom(BAP_OWNER, msg.sender, quantity);
+        ERC20(BAP).transferFrom(BAP_OWNER, msg.sender, quantity);
         
         emit Purchased(msg.sender, quantity);
     }
@@ -80,7 +85,7 @@ contract BAPSaleContract is Ownable {
         if (token == address(0)) {
             balance = address(this).balance;
         } else {
-            balance = IERC20(token).balanceOf(address(this));
+            balance = ERC20(token).balanceOf(address(this));
         }
 
         require(balance >= amount, "Required amount exceeds the balance");
@@ -88,7 +93,7 @@ contract BAPSaleContract is Ownable {
         if (token == address(0)) {
             payable(BAP_OWNER).transfer(amount);
         } else {
-            IERC20(token).transfer(BAP_OWNER, amount);
+            ERC20(token).transfer(BAP_OWNER, amount);
         }
     }
 

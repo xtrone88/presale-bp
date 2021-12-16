@@ -85,7 +85,7 @@ export default function StableCoinSelection(props: PropsType) {
   }
 
   useEffect(() => {
-    if (props.payment) {
+    if (!props.payment) {
       getLatestPriceOf(PRICE_FEEDER[coin]).then((price) => {
         setPrice(price)
         updatePayment(price)
@@ -94,7 +94,7 @@ export default function StableCoinSelection(props: PropsType) {
   }, [coin])
 
   useEffect(() => {
-    if (props.payment) {
+    if (!props.payment) {
       updatePayment(price)
     }
   }, [props.bapPrice])

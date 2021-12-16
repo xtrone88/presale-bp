@@ -1,5 +1,5 @@
 import Web3 from 'web3'
-import IERC20ABI from './ERC20Token.json'
+import IERC20ABI from './ERC20.json'
 import AggregatorV3Interface from './AggregatorV3Interface.json'
 import BAPSaleContractABI from './BAPSaleContract.json'
 
@@ -110,7 +110,7 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
     new BN('10').pow(new BN(bapDecimals))
   )
 
-  console.log(bapAmount, token, tokenAmount)
+  console.log(bapAmount.toString(), token, tokenAmount)
 
   let tx = {
     gas: '0x5208',
@@ -155,8 +155,6 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
   tx.data = bapSaleContract.methods
     .buy(bapAmount, token, tokenAmount)
     .encodeABI()
-
-  console.log(tx)
 
   await window.web3Provider
     .request({
