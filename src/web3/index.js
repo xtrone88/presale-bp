@@ -110,8 +110,6 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
     new BN('10').pow(new BN(bapDecimals))
   )
 
-  console.log(bapAmount.toString(), token, tokenAmount)
-
   let tx = {
     gas: '0x5208',
     gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
@@ -226,6 +224,57 @@ export async function setBapPrice(price, callback) {
   )
 }
 
+export async function approveBapToSale(callback) {
+  if (!window.web3Provider) {
+    return
+  }
+  const web3 = new Web3(window.web3Provider)
+  const tokenContract = new web3.eth.Contract(
+    IERC20ABI.abi,
+    process.env.REACT_APP_BAPTOKEN
+  )
+  const balance = await tokenContract.methods
+    .balanceOf(process.env.REACT_APP_BAP_OWNER)
+    .call()
+
+  console.log('BALANCE', balance)
+
+  let tx = {
+    gas: '0x5208',
+    gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
+    from: await getAccount(),
+    to: process.env.REACT_APP_BAPTOKEN,
+    data: await tokenContract.methods
+      .approve(process.env.REACT_APP_BAPSALECONTRACT, balance)
+      .encodeABI(),
+    value: '0',
+  }
+
+  await window.web3Provider
+    .request({
+      method: 'eth_sendTransaction',
+      params: [tx],
+    })
+    .then(() => {
+      console.log('Transaction!!!')
+    })
+    .catch((err) => {
+      callback()
+    })
+
+  await tokenContract.once(
+    'Approval',
+    {
+      filter: { receiver: tx.from },
+      fromBlock: 0,
+    },
+    function (error, event) {
+      console.log(event)
+      callback()
+    }
+  )
+}
+
 export async function withrawFund(token, tokenAmount, callback) {
   if (!window.web3Provider) {
     return
@@ -238,8 +287,8 @@ export async function withrawFund(token, tokenAmount, callback) {
   )
 
   let tx = {
-    gas: '0x5208',
-    gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
+    // gas: '0x5208',
+    // gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
     from: await getAccount(),
     to: process.env.REACT_APP_BAPSALECONTRACT,
     data: '',

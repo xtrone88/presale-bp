@@ -26,7 +26,7 @@ import {
   COIN_SLIDER_STEP,
   COINMAP,
 } from '../config/blockchain'
-import { getBapSalePrice, setBapPrice } from '../web3/index'
+import { getBapSalePrice, setBapPrice, approveBapToSale } from '../web3/index'
 
 const Divider = styled(MuiDivider)`
   width: 100%;
@@ -35,6 +35,7 @@ const Divider = styled(MuiDivider)`
 export default function AdminPanelPage() {
   const [connected, setConnected] = useState(false)
   const [waitPrice, setWaitPrice] = useState(false)
+  const [waitApprove, setWaitApprove] = useState(false)
   const [bapUnitPrice, setBapUnitPrice] = useState(0)
 
   const [account, setAccount] = useState('')
@@ -67,7 +68,7 @@ export default function AdminPanelPage() {
       <Box>
         <Card variant="outlined" sx={{ width: 400 }}>
           <CardHeader
-            title="BAP PRICE"
+            title="BAP PRICE AND APPROVE"
             titleTypographyProps={{ variant: 'h6', sx: { color: 'white' } }}
             sx={{ backgroundColor: indigo[500] }}
           />
@@ -83,12 +84,13 @@ export default function AdminPanelPage() {
                     event.target.value === '' ? 0 : Number(event.target.value)
                   )
                 }}
+                sx={{ width: 100 }}
               />
               <Box sx={{ position: 'relative' }}>
                 <Button
                   color="primary"
                   variant="contained"
-                  disabled={waitPrice}
+                  disabled={!connected || waitPrice}
                   onClick={() => {
                     setWaitPrice(true)
                     setBapPrice(Math.pow(10, 8) * bapUnitPrice, () => {
@@ -99,6 +101,34 @@ export default function AdminPanelPage() {
                   Set Price
                 </Button>
                 {waitPrice && (
+                  <CircularProgress
+                    color="secondary"
+                    size={24}
+                    sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      marginTop: '-12px',
+                      marginLeft: '-12px',
+                    }}
+                  />
+                )}
+              </Box>
+              <Box sx={{ position: 'relative' }}>
+                <Button
+                  color="secondary"
+                  variant="contained"
+                  disabled={!connected || waitApprove}
+                  onClick={() => {
+                    setWaitApprove(true)
+                    approveBapToSale(() => {
+                      window.location.reload()
+                    })
+                  }}
+                >
+                  Approve
+                </Button>
+                {waitApprove && (
                   <CircularProgress
                     color="secondary"
                     size={24}
