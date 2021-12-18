@@ -61,14 +61,12 @@ export default function ConnectWallet(props: PropsType) {
   let connector: any = connectors[props.wallet]
 
   useEffect(() => {
-    console.log('connected', connected)
     if (hasConnected() && connector) {
       connector.getProvider().then((provider: any) => {
         if (!provider) {
           return
         }
         setConnected(true)
-        console.log(provider)
         if (props.onConnected) {
           props.onConnected(provider)
         }

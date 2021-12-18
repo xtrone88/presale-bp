@@ -136,6 +136,14 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
       .approve(process.env.REACT_APP_BAPSALECONTRACT, tokenAmount)
       .encodeABI()
 
+    tx.gas = web3.utils.toHex(
+      await web3.eth.estimateGas({
+        from: tx.from,
+        to: tx.to,
+        data: tx.data,
+      })
+    )
+
     await window.web3Provider
       .request({
         method: 'eth_sendTransaction',
@@ -153,6 +161,14 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
   tx.data = bapSaleContract.methods
     .buy(bapAmount, token, tokenAmount)
     .encodeABI()
+
+  tx.gas = web3.utils.toHex(
+    await web3.eth.estimateGas({
+      from: tx.from,
+      to: tx.to,
+      data: tx.data,
+    })
+  )
 
   await window.web3Provider
     .request({
@@ -199,6 +215,14 @@ export async function setBapPrice(price, callback) {
     value: '0',
   }
 
+  tx.gas = web3.utils.toHex(
+    await web3.eth.estimateGas({
+      from: tx.from,
+      to: tx.to,
+      data: tx.data,
+    })
+  )
+
   await window.web3Provider
     .request({
       method: 'eth_sendTransaction',
@@ -237,8 +261,6 @@ export async function approveBapToSale(callback) {
     .balanceOf(process.env.REACT_APP_BAP_OWNER)
     .call()
 
-  console.log('BALANCE', balance)
-
   let tx = {
     gas: '0x5208',
     gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
@@ -250,6 +272,14 @@ export async function approveBapToSale(callback) {
     value: '0',
   }
 
+  tx.gas = web3.utils.toHex(
+    await web3.eth.estimateGas({
+      from: tx.from,
+      to: tx.to,
+      data: tx.data,
+    })
+  )
+
   await window.web3Provider
     .request({
       method: 'eth_sendTransaction',
@@ -260,6 +290,7 @@ export async function approveBapToSale(callback) {
     })
     .catch((err) => {
       callback()
+      console.log(err)
     })
 
   await tokenContract.once(
@@ -287,8 +318,8 @@ export async function withrawFund(token, tokenAmount, callback) {
   )
 
   let tx = {
-    // gas: '0x5208',
-    // gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
+    gas: '0x5208',
+    gasPrice: web3.utils.toHex(await web3.eth.getGasPrice()),
     from: await getAccount(),
     to: process.env.REACT_APP_BAPSALECONTRACT,
     data: '',
@@ -309,6 +340,14 @@ export async function withrawFund(token, tokenAmount, callback) {
   }
 
   tx.data = bapSaleContract.methods.withraw(token, tokenAmount).encodeABI()
+
+  tx.gas = web3.utils.toHex(
+    await web3.eth.estimateGas({
+      from: tx.from,
+      to: tx.to,
+      data: tx.data,
+    })
+  )
 
   await window.web3Provider
     .request({

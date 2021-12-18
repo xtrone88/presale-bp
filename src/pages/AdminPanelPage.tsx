@@ -169,7 +169,6 @@ export default function AdminPanelPage() {
                 chainId={chainId}
                 payment={coinAmount}
                 onChanged={(coin: COINS, balance: number, amount: number) => {
-                  console.log(coin, balance, amount)
                   setCoinId(coin)
                   setCoinBalance(balance)
                 }}
