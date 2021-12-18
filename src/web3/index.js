@@ -167,6 +167,7 @@ export async function buyBapTokens(bapAmount, token, tokenAmount, callback) {
       from: tx.from,
       to: tx.to,
       data: tx.data,
+      value: tx.value,
     })
   )
 
